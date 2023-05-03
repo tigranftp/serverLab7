@@ -48,10 +48,38 @@ func (a *API) configureRouter() {
 	a.router.HandleFunc("/add_university", a.handleAddUniversity())
 	a.router.HandleFunc("/delete_ranking_criteria", a.handleDeleteRankingCriteria())
 	a.router.HandleFunc("/change_university_year_staff_ratio", a.handleChangeUniversityYearStaffRatio())
+	a.router.HandleFunc("/add_university_ranking_year", a.handleAddUniversityRankingYear())
 }
 
 func (a *API) configureDB() {
 	a.store = db.New(a.config)
+}
+
+func (a *API) handleAddUniversityRankingYear() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		body, err := io.ReadAll(request.Body)
+		if err != nil {
+			http.Error(writer, "can't read body", http.StatusBadRequest)
+			return
+		}
+		err = request.Body.Close()
+		if err != nil {
+			http.Error(writer, "can't close body", http.StatusInternalServerError)
+			return
+		}
+		var aury types.AddUniversityRankingYear
+		err = json.Unmarshal(body, &aury)
+		if err != nil {
+			http.Error(writer, "error during unmarshal", http.StatusBadRequest)
+			return
+		}
+		_, err = a.store.Exec(db.AddUniversityRankingYear, aury.UniversityName, aury.CriteriaName, aury.Year, aury.Score)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writer.WriteHeader(http.StatusOK)
+	}
 }
 
 func (a *API) handleChangeUniversityYearStaffRatio() http.HandlerFunc {
@@ -69,7 +97,7 @@ func (a *API) handleChangeUniversityYearStaffRatio() http.HandlerFunc {
 		var cssr types.ChangeStudentStaffRatio
 		err = json.Unmarshal(body, &cssr)
 		if err != nil {
-			http.Error(writer, "can't close body", http.StatusInternalServerError)
+			http.Error(writer, "error during unmarshal", http.StatusBadRequest)
 			return
 		}
 		_, err = a.store.Exec(db.ChangeUniversityYearStaffRatio, cssr.NewStaffRatio, cssr.UniversityName, cssr.Year)

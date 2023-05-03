@@ -22,3 +22,10 @@ type ChangeStudentStaffRatio struct {
 	Year           int
 	NewStaffRatio  int
 }
+
+type AddUniversityRankingYear struct {
+	UniversityName string
+	CriteriaName   string
+	Year           int
+	Score          int
+}

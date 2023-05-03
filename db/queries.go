@@ -14,4 +14,7 @@ const (
 	ChangeUniversityYearStaffRatio = `UPDATE university_year
 									SET student_staff_ratio = (?)
 									WHERE university_id = (SELECT id from university where university_name = (?)) AND year = (?);`
+	AddUniversityRankingYear = `INSERT INTO university_ranking_year (university_id, ranking_criteria_id, year, score) 
+								VALUES ((SELECT id FROM university WHERE university_name = (?)),
+										(SELECT id FROM ranking_criteria WHERE criteria_name = (?)),(?),(?))`
 )
